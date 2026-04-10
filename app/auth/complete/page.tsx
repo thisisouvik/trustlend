@@ -18,6 +18,11 @@ export default function AuthCompletePage() {
   useEffect(() => {
     let cancelled = false;
 
+    const isInvalidRefreshTokenError = (value: unknown) => {
+      const text = String(value ?? "").toLowerCase();
+      return text.includes("invalid refresh token") || text.includes("refresh token not found");
+    };
+
     const completeAuth = async () => {
       const supabase = getBrowserSupabaseClient();
       if (!supabase) {
@@ -31,8 +36,27 @@ export default function AuthCompletePage() {
         typeof window !== "undefined" ? window.localStorage.getItem(PENDING_ROLE_KEY) : null;
       const pendingRole = isUserRole(pendingRoleRaw) ? pendingRoleRaw : null;
 
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
+      let session: Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"] = null;
+
+      try {
+        const { data } = await supabase.auth.getSession();
+        session = data.session;
+      } catch (error) {
+        if (isInvalidRefreshTokenError(error)) {
+          await supabase.auth.signOut({ scope: "local" });
+          if (!cancelled) {
+            setMessage("Session expired. Redirecting back to sign in...");
+            router.replace("/auth");
+          }
+          return;
+        }
+
+        if (!cancelled) {
+          setMessage("Unable to complete sign in. Please try again.");
+          router.replace("/auth");
+        }
+        return;
+      }
 
       if (!session) {
         if (!cancelled) {

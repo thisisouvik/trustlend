@@ -64,6 +64,15 @@ export function AuthPageClient() {
     }
   };
 
+  const isInvalidRefreshTokenError = (value: unknown) => {
+    const text = String(value ?? "").toLowerCase();
+    return text.includes("invalid refresh token") || text.includes("refresh token not found");
+  };
+
+  const recoverLocalAuthState = async (supabase: NonNullable<ReturnType<typeof getBrowserSupabaseClient>>) => {
+    await supabase.auth.signOut({ scope: "local" });
+  };
+
   const getSupabaseOrFail = () => {
     const supabase = getBrowserSupabaseClient();
     if (!supabase) {
@@ -89,10 +98,26 @@ export function AuthPageClient() {
 
     persistRole();
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/complete` },
-    });
+    let error: { message: string } | null = null;
+
+    try {
+      const response = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/complete` },
+      });
+      error = response.error;
+    } catch (caughtError) {
+      if (isInvalidRefreshTokenError(caughtError)) {
+        await recoverLocalAuthState(supabase);
+        setMessage({ type: "info", text: "Session was stale. Please try Google sign-in again." });
+        setGoogleLoading(false);
+        return;
+      }
+
+      setMessage({ type: "error", text: "Unable to start Google sign-in right now." });
+      setGoogleLoading(false);
+      return;
+    }
 
     if (error) {
       setMessage({ type: "error", text: error.message });
@@ -120,13 +145,29 @@ export function AuthPageClient() {
 
     persistRole();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { account_type: role, full_name: fullName.trim() },
-      },
-    });
+    let error: { message: string } | null = null;
+
+    try {
+      const response = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          data: { account_type: role, full_name: fullName.trim() },
+        },
+      });
+      error = response.error;
+    } catch (caughtError) {
+      if (isInvalidRefreshTokenError(caughtError)) {
+        await recoverLocalAuthState(supabase);
+        setMessage({ type: "info", text: "Session was stale. Try creating your account again." });
+        setIsLoading(false);
+        return;
+      }
+
+      setMessage({ type: "error", text: "Unable to send signup OTP right now." });
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(false);
 
@@ -135,12 +176,8 @@ export function AuthPageClient() {
       return;
     }
 
-    if (data.user?.identities?.length === 0) {
-      setMessage({ type: "error", text: "This email is already registered. Please sign in." });
-      return;
-    }
-
     setMessage({ type: "success", text: "Code sent! Check your email for the 6-digit OTP." });
+    setOtp("");
     setAuthStep("verify-signup-otp");
   };
 
@@ -158,12 +195,28 @@ export function AuthPageClient() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      },
-    });
+    let error: { message: string } | null = null;
+
+    try {
+      const response = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+      error = response.error;
+    } catch (caughtError) {
+      if (isInvalidRefreshTokenError(caughtError)) {
+        await recoverLocalAuthState(supabase);
+        setMessage({ type: "info", text: "Session was stale. Try sending sign-in code again." });
+        setIsLoading(false);
+        return;
+      }
+
+      setMessage({ type: "error", text: "Unable to send sign-in OTP right now." });
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(false);
 
@@ -191,12 +244,28 @@ export function AuthPageClient() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      },
-    });
+    let error: { message: string } | null = null;
+
+    try {
+      const response = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+      error = response.error;
+    } catch (caughtError) {
+      if (isInvalidRefreshTokenError(caughtError)) {
+        await recoverLocalAuthState(supabase);
+        setMessage({ type: "info", text: "Session was stale. Try sending recovery code again." });
+        setIsLoading(false);
+        return;
+      }
+
+      setMessage({ type: "error", text: "Unable to send recovery OTP right now." });
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(false);
 
@@ -224,13 +293,31 @@ export function AuthPageClient() {
       return;
     }
 
-    const otpType = type === "signup" ? "signup" : "email";
+    const otpType = "email";
 
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: otpType,
-    });
+    let data: { user?: { user_metadata?: Record<string, unknown> } } | null = null;
+    let error: { message: string } | null = null;
+
+    try {
+      const response = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: otpType,
+      });
+      data = response.data as { user?: { user_metadata?: Record<string, unknown> } };
+      error = response.error;
+    } catch (caughtError) {
+      if (isInvalidRefreshTokenError(caughtError)) {
+        await recoverLocalAuthState(supabase);
+        setMessage({ type: "info", text: "Session was stale. Please request a new OTP and try again." });
+        setIsLoading(false);
+        return;
+      }
+
+      setMessage({ type: "error", text: "OTP verification failed. Please try again." });
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(false);
 
@@ -239,8 +326,25 @@ export function AuthPageClient() {
       return;
     }
 
-    if (type === "signup" || type === "signin") {
-      const nextRole = normalizeUserRole(data.user?.user_metadata?.account_type);
+    if (type === "signup") {
+      const { data: updatedData, error: updateError } = await supabase.auth.updateUser({
+        password,
+        data: {
+          ...data?.user?.user_metadata,
+          account_type: role,
+          full_name: fullName.trim(),
+        },
+      });
+
+      if (updateError) {
+        setMessage({ type: "error", text: updateError.message });
+        return;
+      }
+
+      const nextRole = normalizeUserRole(updatedData.user?.user_metadata?.account_type);
+      router.push(getDashboardPath(nextRole));
+    } else if (type === "signin") {
+      const nextRole = normalizeUserRole(data?.user?.user_metadata?.account_type);
       router.push(getDashboardPath(nextRole));
     } else {
       setMessage({ type: "success", text: "Code verified. Please enter a new password." });
@@ -263,9 +367,27 @@ export function AuthPageClient() {
       return;
     }
 
-    const { data, error } = await supabase.auth.updateUser({
-      password: password,
-    });
+    let data: { user?: { user_metadata?: Record<string, unknown> } } | null = null;
+    let error: { message: string } | null = null;
+
+    try {
+      const response = await supabase.auth.updateUser({
+        password: password,
+      });
+      data = response.data as { user?: { user_metadata?: Record<string, unknown> } };
+      error = response.error;
+    } catch (caughtError) {
+      if (isInvalidRefreshTokenError(caughtError)) {
+        await recoverLocalAuthState(supabase);
+        setMessage({ type: "info", text: "Session expired. Request a new recovery code and try again." });
+        setIsLoading(false);
+        return;
+      }
+
+      setMessage({ type: "error", text: "Unable to update password right now." });
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(false);
 
@@ -274,7 +396,7 @@ export function AuthPageClient() {
       return;
     }
 
-    const nextRole = normalizeUserRole(data.user?.user_metadata?.account_type);
+    const nextRole = normalizeUserRole(data?.user?.user_metadata?.account_type);
     router.push(getDashboardPath(nextRole));
   };
 
@@ -553,10 +675,10 @@ export function AuthPageClient() {
                     id="auth-password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    autoComplete={authStep === "sign-in" ? "current-password" : "new-password"}
+                    autoComplete="new-password"
                     required
                     className="auth-page-input auth-page-input--padded"
-                    placeholder={authStep === "sign-in" ? "Your password" : "At least 8 characters"}
+                    placeholder="At least 8 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}

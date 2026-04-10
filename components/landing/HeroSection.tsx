@@ -1,6 +1,5 @@
 import Image from "next/image";
 import type { HeroContent } from "@/types/landing";
-import heroCrypto from "@/assets/hero-crypto.png";
 import { AuthAccessButton } from "@/components/auth/AuthAccessButton";
 
 interface HeroSectionProps {
@@ -42,7 +41,7 @@ export function HeroSection({ content }: HeroSectionProps) {
           <div className="hero-visual-ring" />
           <div className="hero-art">
             <Image
-              src={heroCrypto}
+              src="/assets/hero-crypto.png"
               alt=""
               fill
               priority
