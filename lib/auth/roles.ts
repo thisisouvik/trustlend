@@ -1,4 +1,4 @@
-export type UserRole = "borrower" | "lender";
+export type UserRole = "borrower" | "lender" | "admin";
 
 export const DEFAULT_ROLE: UserRole = "borrower";
 export const PENDING_ROLE_KEY = "trustlend_pending_role";
