@@ -11,14 +11,24 @@ export default async function LenderPortfolioPage() {
   const metrics = await getLenderDashboardMetrics(user.id);
 
   const supabase = await getServerSupabaseClient();
-  const { data: positions } = supabase
-    ? await supabase
-        .from("pool_positions")
-        .select("id, pool_id, status, principal_amount, earned_interest, opened_at")
-        .eq("lender_id", user.id)
-        .order("opened_at", { ascending: false })
-        .limit(8)
-    : { data: [] as Array<Record<string, unknown>> };
+  const [positionsRes, profileRes] = supabase
+    ? await Promise.all([
+        supabase
+          .from("pool_positions")
+          .select("id, pool_id, status, principal_amount, earned_interest, opened_at")
+          .eq("lender_id", user.id)
+          .order("opened_at", { ascending: false })
+          .limit(8),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: [] }, { data: null }];
+
+  const positions = positionsRes.data ?? [];
+  const profile = profileRes.data;
 
   return (
     <WorkspaceFrame
@@ -26,6 +36,7 @@ export default async function LenderPortfolioPage() {
       heading="Portfolio Positions"
       description="Track active pool positions, principal exposure, and cumulative interest earned."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentLenderMetrics(metrics)}
       currentPath="/dashboard/lender/portfolio"
       links={[
@@ -33,7 +44,7 @@ export default async function LenderPortfolioPage() {
         { href: "/dashboard/lender/pools", label: "Pools" },
         { href: "/dashboard/lender/portfolio", label: "Portfolio" },
         { href: "/dashboard/lender/risk", label: "Risk" },
-        { href: "/dashboard/lender/profile", label: "Settings" },
+        { href: "/dashboard/lender/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-grid">

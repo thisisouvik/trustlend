@@ -74,6 +74,7 @@ export function LoanApplicationForm({ maxAmount, onSubmit }: LoanApplicationForm
         type="submit"
         disabled={loading || !amount}
         className="workspace-button workspace-button--primary"
+        style={{ width: "100%", marginTop: "0.5rem" }}
       >
         {loading ? "Submitting..." : "Submit Application"}
       </button>
@@ -154,30 +155,35 @@ export function RepaymentForm({ loanAmount, repaidAmount, onSubmit }: RepaymentF
 
       {error && <p className="workspace-error">{error}</p>}
 
-      <div className="workspace-form-actions">
-        <button
-          type="button"
-          onClick={handlePayMinimum}
-          disabled={loading}
-          className="workspace-button workspace-button--secondary"
-        >
-          {loading ? "Processing..." : "Pay Minimum"}
-        </button>
-        <button
-          type="submit"
-          disabled={loading || !amount}
-          className="workspace-button workspace-button--primary"
-        >
-          {loading ? "Processing..." : "Pay Custom"}
-        </button>
+      <div className="workspace-form-actions" style={{ flexDirection: "column", gap: "0.6rem", marginTop: "0.6rem" }}>
         <button
           type="button"
           onClick={handlePayFull}
           disabled={loading}
-          className="workspace-button workspace-button--success"
+          className="workspace-button workspace-button--primary"
+          style={{ width: "100%" }}
         >
-          {loading ? "Processing..." : "Pay Full"}
+          {loading ? "Processing..." : "Pay Full Amount"}
         </button>
+        <div style={{ display: "flex", gap: "0.6rem" }}>
+          <button
+            type="button"
+            onClick={handlePayMinimum}
+            disabled={loading}
+            className="workspace-button workspace-button--secondary"
+            style={{ flex: 1 }}
+          >
+            {loading ? "Processing..." : "Pay Minimum"}
+          </button>
+          <button
+            type="submit"
+            disabled={loading || !amount}
+            className="workspace-button workspace-button--primary"
+            style={{ flex: 1 }}
+          >
+            {loading ? "Processing..." : "Pay Custom"}
+          </button>
+        </div>
       </div>
     </form>
   );

@@ -15,6 +15,7 @@ export default async function AdminDashboardPage() {
       heading="Control Panel"
       description="Monitor platform health, credit activity, and security posture across TrustLend operations."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? "Admin")}
       metrics={presentAdminMetrics(metrics)}
       links={[
         { href: "/dashboard/admin", label: "Overview" },

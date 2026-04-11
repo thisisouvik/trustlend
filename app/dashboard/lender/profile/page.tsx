@@ -26,6 +26,7 @@ export default async function LenderProfilePage() {
       heading="Profile Settings & Security"
       description="Update your personal details and complete required compliance checks to manage lending pools."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentLenderMetrics(metrics)}
       currentPath="/dashboard/lender/profile"
       links={[
@@ -33,7 +34,7 @@ export default async function LenderProfilePage() {
         { href: "/dashboard/lender/pools", label: "Pools" },
         { href: "/dashboard/lender/portfolio", label: "Portfolio" },
         { href: "/dashboard/lender/risk", label: "Risk" },
-        { href: "/dashboard/lender/profile", label: "Settings" },
+        { href: "/dashboard/lender/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-grid workspace-grid--two">
@@ -55,7 +56,12 @@ export default async function LenderProfilePage() {
             <div className="profile-summary-grid">
               <div className="profile-summary-item">
                 <span className="profile-summary-label">KYC Status</span>
-                <p className="profile-summary-value">{String(profile?.kyc_status ?? "pending").toUpperCase()}</p>
+                <p className="profile-summary-value">
+                  {String(profile?.kyc_status ?? "pending").toUpperCase()}
+                  {profile?.kyc_status === "verified" ? (
+                    <span style={{ marginLeft: "0.5rem", color: "#10b981", fontSize: "1.1rem" }}>✅</span>
+                  ) : null}
+                </p>
               </div>
               <div className="profile-summary-item">
                 <span className="profile-summary-label">Risk Profile</span>

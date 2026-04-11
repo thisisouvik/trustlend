@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/supabase/client";
+import { uploadKYCDocument } from "@/app/actions/kyc-upload";
 
 interface ProfileSettingsFormProps {
   initialName?: string;
@@ -19,6 +20,7 @@ export function ProfileSettingsForm({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: initialName,
@@ -26,8 +28,17 @@ export function ProfileSettingsForm({
     country_code: initialCountry,
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value, files } = e.target;
+    
+    if (name === "government_id" && files?.[0]) {
+      setSelectedFile(files[0]);
+      console.log(`📄 File selected: ${files[0].name} (${files[0].size} bytes)`);
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,6 +46,7 @@ export function ProfileSettingsForm({
     setLoading(true);
     setError(null);
     setSuccess(false);
+    setUploadProgress(null);
 
     try {
       const supabase = getBrowserSupabaseClient();
@@ -45,12 +57,13 @@ export function ProfileSettingsForm({
         throw new Error("You must be logged in to update your profile.");
       }
 
+      // Step 1: Update basic profile info
+      console.log("📝 Updating profile info...");
       const updates = {
         id: userData.user.id,
         full_name: formData.full_name,
         phone: formData.phone,
         country_code: formData.country_code,
-        kyc_status: formData.full_name && formData.phone ? "verified" : "pending",
       };
 
       const { error: updateError } = await supabase
@@ -59,10 +72,30 @@ export function ProfileSettingsForm({
 
       if (updateError) throw updateError;
 
+      // Step 2: Upload government ID if file selected
+      if (selectedFile) {
+        console.log("📤 Uploading government ID to IPFS...");
+        setUploadProgress(30);
+
+        const formDataWithFile = new FormData();
+        formDataWithFile.append("government_id", selectedFile);
+
+        const uploadResult = await uploadKYCDocument(formDataWithFile);
+
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || "Failed to upload document");
+        }
+
+        console.log(`✅ Document uploaded to Supabase: ${uploadResult.path}`);
+        setUploadProgress(100);
+      }
+
       setSuccess(true);
-      router.refresh();
+      setUploadProgress(null);
+      setTimeout(() => router.refresh(), 500);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to update profile.");
+      setUploadProgress(null);
     } finally {
       setLoading(false);
     }
@@ -71,60 +104,95 @@ export function ProfileSettingsForm({
   return (
     <form className="settings-form-group" onSubmit={handleSubmit}>
       {error && <p className="auth-page-error">{error}</p>}
-      {success && <p className="form-success-message">Profile details verified successfully! On-chain record updated.</p>}
-
-      <div className="settings-field">
-        <label htmlFor="full_name" className="settings-label">Full Legal Name</label>
-        <input
-          id="full_name"
-          name="full_name"
-          type="text"
-          className="settings-input"
-          value={formData.full_name}
-          onChange={handleChange}
-          placeholder="e.g. Satoshi Nakamoto"
-        />
-      </div>
-
-      <div className="settings-field">
-        <label htmlFor="phone" className="settings-label">Phone Number</label>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          className="settings-input"
-          value={formData.phone}
-          onChange={handleChange}
-          placeholder="+1 (555) 000-0000"
-        />
-      </div>
-
-      <div className="settings-field">
-        <label htmlFor="country_code" className="settings-label">Country Code</label>
-        <input
-          id="country_code"
-          name="country_code"
-          type="text"
-          className="settings-input"
-          value={formData.country_code}
-          onChange={handleChange}
-          placeholder="US"
-          maxLength={2}
-        />
-      </div>
-
-      <fieldset className="settings-field" style={{ border: '1px solid #d3dcf1', padding: '1rem', borderRadius: '0.6rem', marginTop: '0.5rem' }}>
-        <legend className="settings-label" style={{ padding: '0 0.5rem' }}>Government ID Verification</legend>
-        <p className="workspace-card-copy" style={{ marginBottom: '0.5rem' }}>
-          Upload an official government ID for our on-chain verification partner.
+      {success && (
+        <p className="form-success-message">
+          Profile details saved successfully. Document uploaded for admin review.
         </p>
-        <input type="file" className="settings-input" accept="image/*" />
+      )}
+
+      <div className="settings-grid">
+        <div className="settings-field">
+          <label htmlFor="full_name" className="settings-label">Full Legal Name</label>
+          <input
+            id="full_name"
+            name="full_name"
+            type="text"
+            className="settings-input"
+            value={formData.full_name}
+            onChange={handleChange}
+            placeholder="e.g. Satoshi Nakamoto"
+            required
+          />
+        </div>
+
+        <div className="settings-field">
+          <label htmlFor="phone" className="settings-label">Phone Number</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            className="settings-input"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="+1 (555) 000-0000"
+            required
+          />
+        </div>
+
+        <div className="settings-field settings-field--narrow">
+          <label htmlFor="country_code" className="settings-label">Country Code</label>
+          <input
+            id="country_code"
+            name="country_code"
+            type="text"
+            className="settings-input"
+            value={formData.country_code}
+            onChange={handleChange}
+            placeholder="US"
+            maxLength={2}
+            required
+          />
+        </div>
+      </div>
+
+      <fieldset className="settings-upload-panel">
+        <legend className="settings-label settings-upload-legend">Government ID Verification</legend>
+        <p className="settings-help-text">
+          Upload an official government ID. It is stored in secure Supabase Storage and reviewed by admins only.
+        </p>
+        <p className="settings-disclaimer settings-disclaimer--rules">
+          Accepted files: JPG, PNG, WEBP, or PDF. Maximum size: 10 MB.
+        </p>
+        <p className="settings-disclaimer settings-disclaimer--warning">
+          Important: once submitted, this document cannot be changed from your dashboard.
+        </p>
+        <input
+          type="file"
+          name="government_id"
+          id="government_id"
+          className="settings-input settings-input--file"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          onChange={handleChange}
+        />
+        {selectedFile && (
+          <p className="settings-file-note">
+            File selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(0)} KB)
+          </p>
+        )}
+        {uploadProgress !== null && (
+          <div className="settings-progress-track">
+            <div
+              className="settings-progress-fill"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        )}
       </fieldset>
 
       <button
         type="submit"
         disabled={loading}
-        className="workspace-btn-primary settings-submit"
+        className="workspace-button workspace-button--primary settings-submit-btn"
       >
         {loading ? "Verifying..." : "Save & Verify Identity"}
       </button>

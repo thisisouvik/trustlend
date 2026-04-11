@@ -26,13 +26,14 @@ export default async function BorrowerProfilePage() {
       heading="Profile Settings & Verification"
       description="Update your personal details and complete KYC milestones to unlock full platform features."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentBorrowerMetrics(metrics)}
       currentPath="/dashboard/borrower/profile"
       links={[
-        { href: "/dashboard/borrower", label: "Overview" },
+        { href: "/dashboard/borrower", label: "Home" },
         { href: "/dashboard/borrower/loans", label: "My loans" },
         { href: "/dashboard/borrower/tasks", label: "Tasks" },
-        { href: "/dashboard/borrower/profile", label: "Settings" },
+        { href: "/dashboard/borrower/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-grid workspace-grid--two">

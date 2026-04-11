@@ -36,6 +36,12 @@ const ROLE_META: Record<UserRole, { label: string; emoji: string; tagline: strin
     tagline: "Earn transparent returns by funding verified borrowers",
     color: "#22cf9d",
   },
+  admin: {
+    label: "Admin",
+    emoji: "🛡️",
+    tagline: "Manage platform operations and verify users",
+    color: "#ef4444",
+  },
 };
 
 export function AuthPageClient() {

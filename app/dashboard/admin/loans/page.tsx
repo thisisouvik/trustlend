@@ -25,6 +25,7 @@ export default async function AdminLoansPage() {
       heading="Loan Operations"
       description="Monitor loan lifecycle, exposure, and maturity timelines across the platform."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? "Admin")}
       metrics={presentAdminMetrics(metrics)}
       links={[
         { href: "/dashboard/admin", label: "Overview" },

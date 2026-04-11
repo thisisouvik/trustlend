@@ -11,14 +11,24 @@ export default async function BorrowerTasksPage() {
   const metrics = await getBorrowerDashboardMetrics(user.id);
 
   const supabase = await getServerSupabaseClient();
-  const { data: tasks } = supabase
-    ? await supabase
-        .from("tasks")
-        .select("id, title, status, reward_xlm, difficulty")
-        .eq("assigned_to", user.id)
-        .order("created_at", { ascending: false })
-        .limit(8)
-    : { data: [] as Array<Record<string, unknown>> };
+  const [tasksRes, profileRes] = supabase
+    ? await Promise.all([
+        supabase
+          .from("tasks")
+          .select("id, title, status, reward_xlm, difficulty")
+          .eq("assigned_to", user.id)
+          .order("created_at", { ascending: false })
+          .limit(8),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: [] }, { data: null }];
+
+  const tasks = tasksRes.data ?? [];
+  const profile = profileRes.data;
 
   return (
     <WorkspaceFrame
@@ -26,11 +36,14 @@ export default async function BorrowerTasksPage() {
       heading="Tasks Workspace"
       description="Track active assignments and completed tasks used to build trust reputation."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentBorrowerMetrics(metrics)}
+      currentPath="/dashboard/borrower/tasks"
       links={[
-        { href: "/dashboard/borrower", label: "Overview" },
+        { href: "/dashboard/borrower", label: "Home" },
         { href: "/dashboard/borrower/loans", label: "My loans" },
-        { href: "/dashboard/borrower/profile", label: "Profile" },
+        { href: "/dashboard/borrower/tasks", label: "Tasks" },
+        { href: "/dashboard/borrower/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-grid">

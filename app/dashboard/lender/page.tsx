@@ -104,6 +104,7 @@ export default async function LenderDashboardPage() {
       heading="Lender Home"
       description="Data-driven lending operations with transparent pool performance, risk signals, and earnings visibility."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentLenderMetrics(metrics)}
       headerWidget={(
         <WalletCard
@@ -135,7 +136,7 @@ export default async function LenderDashboardPage() {
         { href: "/dashboard/lender/pools", label: "Pools" },
         { href: "/dashboard/lender/portfolio", label: "Portfolio" },
         { href: "/dashboard/lender/risk", label: "Risk" },
-        { href: "/dashboard/lender/profile", label: "Settings" },
+        { href: "/dashboard/lender/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-stack">

@@ -11,13 +11,23 @@ export default async function LenderRiskPage() {
   const metrics = await getLenderDashboardMetrics(user.id);
 
   const supabase = await getServerSupabaseClient();
-  const { data: loans } = supabase
-    ? await supabase
-        .from("loans")
-        .select("id, status, principal_amount, due_at")
-        .order("due_at", { ascending: true })
-        .limit(12)
-    : { data: [] as Array<Record<string, unknown>> };
+  const [loansRes, profileRes] = supabase
+    ? await Promise.all([
+        supabase
+          .from("loans")
+          .select("id, status, principal_amount, due_at")
+          .order("due_at", { ascending: true })
+          .limit(12),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: [] }, { data: null }];
+
+  const loans = loansRes.data ?? [];
+  const profile = profileRes.data;
 
   return (
     <WorkspaceFrame
@@ -25,6 +35,7 @@ export default async function LenderRiskPage() {
       heading="Risk Monitor"
       description="Monitor loan maturity and defaults to keep portfolio risk within target bounds."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentLenderMetrics(metrics)}
       currentPath="/dashboard/lender/risk"
       links={[
@@ -32,7 +43,7 @@ export default async function LenderRiskPage() {
         { href: "/dashboard/lender/pools", label: "Pools" },
         { href: "/dashboard/lender/portfolio", label: "Portfolio" },
         { href: "/dashboard/lender/risk", label: "Risk" },
-        { href: "/dashboard/lender/profile", label: "Settings" },
+        { href: "/dashboard/lender/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-table-wrap">

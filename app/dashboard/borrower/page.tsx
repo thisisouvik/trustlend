@@ -2,9 +2,6 @@ import { WorkspaceFrame } from "@/components/dashboard/WorkspaceFrame";
 import { BorrowerForms } from "@/components/dashboard/BorrowerForms";
 import { FinanceChart } from "@/components/dashboard/FinanceChart";
 import { WalletCard } from "@/components/dashboard/WalletCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableHead, TableTd, TableTh, TableWrap } from "@/components/ui/table";
 import { Badge } from "@/components/ui/Badge";
 import { requireAuthenticatedUser } from "@/lib/auth/session";
@@ -107,6 +104,7 @@ export default async function BorrowerDashboardPage() {
       heading="Borrower Home"
       description="Transparent loan visibility, verification progress, and repayment controls in one place."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentBorrowerMetrics(metrics)}
       headerWidget={(
         <WalletCard
@@ -131,10 +129,10 @@ export default async function BorrowerDashboardPage() {
           : ["Enable 2FA", "Keep employment and bank details updated"],
       }}
       links={[
-        { href: "/dashboard/borrower", label: "Overview" },
+        { href: "/dashboard/borrower", label: "Home" },
         { href: "/dashboard/borrower/loans", label: "My loans" },
         { href: "/dashboard/borrower/tasks", label: "Tasks" },
-        { href: "/dashboard/borrower/profile", label: "Settings" },
+        { href: "/dashboard/borrower/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-stack">
@@ -146,99 +144,107 @@ export default async function BorrowerDashboardPage() {
             points={borrowerChartPoints}
           />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Details Needed</CardTitle>
-              <CardDescription>Please complete these details to receive loans safely.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-slate-700">
-                <li>Legal full name</li>
-                <li>Primary phone number</li>
-                <li>Government-issued ID</li>
-                <li>Selfie and facial verification</li>
-                <li>Bank statement verification</li>
-              </ul>
-            </CardContent>
-          </Card>
+          <article className="workspace-card">
+            <h2 className="workspace-card-title">Security Details Needed</h2>
+            <p className="workspace-card-copy">Please complete these details to receive loans safely.</p>
+            <ul className="workspace-list workspace-list--compact" style={{ marginTop: "0.75rem" }}>
+              <li><span>Legal full name</span></li>
+              <li><span>Primary phone number</span></li>
+              <li><span>Government-issued ID</span></li>
+              <li><span>Selfie and facial verification</span></li>
+              <li><span>Bank statement verification</span></li>
+            </ul>
+          </article>
         </section>
 
         <section className="workspace-grid workspace-grid--two">
-          <Card className="workspace-card--span-2">
-            <CardHeader>
-              <CardTitle>Your Verification Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-            <ul className="space-y-2 text-sm text-slate-700">
+          <article className="workspace-card workspace-card--full">
+            <h2 className="workspace-card-title">Your Verification Status</h2>
+            <ul className="workspace-list workspace-list--compact" style={{ marginTop: "0.75rem" }}>
               {verificationItems.map((item) => (
-                <li key={item.label} className="flex items-center justify-between gap-3">
-                  <span>{item.done ? "Yes" : "Pending"} - {item.label}</span>
-                  <span className="text-xs text-slate-500">{item.day}</span>
+                <li key={item.label} style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+                  <span>{item.done ? "✓ " : "○ "}{item.label}</span>
+                  <span style={{ fontSize: "0.85rem", opacity: 0.6 }}>{item.day}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-sm text-slate-600">Verification Progress: {verificationProgress}%</p>
-            <Progress value={verificationProgress} className="mt-2" />
-            <p className="mt-3 text-sm text-slate-500">Estimated completion: {Math.max(0, 30 - monitoringDays)} days</p>
-            </CardContent>
-          </Card>
-
-          <Card className="workspace-card--span-3">
-            <CardHeader>
-              <CardTitle>Your Loan Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Verified Income: {formatCurrency(1200)} / month</div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Credit Score: {metrics.reputationScore}</div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Max Loan Amount: {formatCurrency(maxLoanAmount)}</div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Active Loans: {activeLoans.length}</div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Closed Loans: {closedLoans.length}</div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Default History: {closedLoans.some((loan) => loan.status === "defaulted") ? "Has defaults" : "None"}</div>
+            <div style={{ marginTop: "1.2rem", padding: "1rem", borderRadius: "0.5rem", background: "linear-gradient(135deg, rgba(126, 47, 208, 0.05) 0%, rgba(34, 207, 157, 0.05) 100%)" }}>
+              <p style={{ fontSize: "0.9rem", marginBottom: "0.5rem", fontWeight: 500 }}>Verification Progress: <strong>{verificationProgress}%</strong></p>
+              <div style={{ height: "0.4rem", borderRadius: "0.25rem", background: "#e5e7eb", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${verificationProgress}%`, background: "linear-gradient(90deg, #7e2fd0 0%, #22cf9d 100%)", transition: "width 0.3s ease" }} />
               </div>
-            </CardContent>
-          </Card>
+              <p style={{ fontSize: "0.85rem", marginTop: "0.5rem", opacity: 0.6 }}>Estimated completion: {Math.max(0, 30 - monitoringDays)} days</p>
+            </div>
+          </article>
+
+          <article className="workspace-card workspace-card--full">
+            <h2 className="workspace-card-title">Your Loan Profile</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.8rem", marginTop: "1rem" }}>
+              <div className="workspace-mini-stat">
+                <span className="workspace-mini-stat-label">Verified Income</span>
+                <p className="workspace-mini-stat-value">{formatCurrency(1200)}/mo</p>
+              </div>
+              <div className="workspace-mini-stat">
+                <span className="workspace-mini-stat-label">Credit Score</span>
+                <p className="workspace-mini-stat-value">{metrics.reputationScore}</p>
+              </div>
+              <div className="workspace-mini-stat">
+                <span className="workspace-mini-stat-label">Max Loan</span>
+                <p className="workspace-mini-stat-value">{formatCurrency(maxLoanAmount)}</p>
+              </div>
+              <div className="workspace-mini-stat">
+                <span className="workspace-mini-stat-label">Active Loans</span>
+                <p className="workspace-mini-stat-value">{activeLoans.length}</p>
+              </div>
+              <div className="workspace-mini-stat">
+                <span className="workspace-mini-stat-label">Closed Loans</span>
+                <p className="workspace-mini-stat-value">{closedLoans.length}</p>
+              </div>
+              <div className="workspace-mini-stat">
+                <span className="workspace-mini-stat-label">Default History</span>
+                <p className="workspace-mini-stat-value">{closedLoans.some((loan) => loan.status === "defaulted") ? "Has defaults" : "None"}</p>
+              </div>
+            </div>
+          </article>
         </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Active Loans</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <article className="workspace-card workspace-card--full">
+          <h2 className="workspace-card-title">Your Active Loans</h2>
           {activeLoans.length === 0 ? (
-            <p className="text-sm text-slate-600">
+            <p className="workspace-card-copy" style={{ marginTop: "0.75rem" }}>
               You have no active loans yet. Complete verification milestones to unlock loan eligibility.
             </p>
           ) : (
-            <TableWrap>
-              <Table aria-label="Active borrower loans">
-                <TableHead>
-                  <tr>
-                    <TableTh>Loan ID</TableTh>
-                    <TableTh>Amount</TableTh>
-                    <TableTh>Status</TableTh>
-                    <TableTh>APR</TableTh>
-                    <TableTh>Due</TableTh>
-                    <TableTh>Actions</TableTh>
-                  </tr>
-                </TableHead>
-                <TableBody>
-                  {activeLoans.map((loan) => (
-                    <tr key={String(loan.id)}>
-                      <TableTd>{String(loan.id).slice(0, 8)}</TableTd>
-                      <TableTd>{formatCurrency(Number(loan.principal_amount ?? 0))}</TableTd>
-                      <TableTd><Badge variant="blue">{String(loan.status).toUpperCase()}</Badge></TableTd>
-                      <TableTd>{(Number(loan.apr_bps ?? 0) / 100).toFixed(2)}%</TableTd>
-                      <TableTd>{loan.due_at ? new Date(String(loan.due_at)).toLocaleDateString() : "-"}</TableTd>
-                      <TableTd><Button variant="outline" className="h-8 px-3 text-xs">Make Payment</Button></TableTd>
+            <div style={{ marginTop: "1rem" }}>
+              <TableWrap>
+                <Table aria-label="Active borrower loans">
+                  <TableHead>
+                    <tr>
+                      <TableTh>Loan ID</TableTh>
+                      <TableTh>Amount</TableTh>
+                      <TableTh>Status</TableTh>
+                      <TableTh>APR</TableTh>
+                      <TableTh>Due</TableTh>
+                      <TableTh>Actions</TableTh>
                     </tr>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableWrap>
+                  </TableHead>
+                  <TableBody>
+                    {activeLoans.map((loan) => (
+                      <tr key={String(loan.id)}>
+                        <TableTd>{String(loan.id).slice(0, 8)}</TableTd>
+                        <TableTd>{formatCurrency(Number(loan.principal_amount ?? 0))}</TableTd>
+                        <TableTd><Badge variant="blue">{String(loan.status).toUpperCase()}</Badge></TableTd>
+                        <TableTd>{(Number(loan.apr_bps ?? 0) / 100).toFixed(2)}%</TableTd>
+                        <TableTd>{loan.due_at ? new Date(String(loan.due_at)).toLocaleDateString() : "-"}</TableTd>
+                        <TableTd><button className="workspace-button workspace-button--secondary" style={{ fontSize: "0.75rem", padding: "0.4rem 0.6rem", height: "auto" }}>Make Payment</button></TableTd>
+                      </tr>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableWrap>
+            </div>
           )}
-          </CardContent>
-        </Card>
+        </article>
 
         <section className="workspace-grid workspace-grid--two">
           <BorrowerForms 
@@ -248,38 +254,42 @@ export default async function BorrowerDashboardPage() {
             dueAmount={dueAmount}
           />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile & Security</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm text-slate-700">
-                <p>Name: {String(profile?.full_name ?? "Not set")}</p>
-                <p>Email: {user.email ?? "Unknown"}</p>
-                <p>Phone: {String(profile?.phone ?? "Not set")}</p>
-                <p>KYC: {String(profile?.kyc_status ?? "pending")}</p>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="outline">Enable 2FA</Button>
-                <Button variant="outline">Change Password</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <article className="workspace-card">
+            <h2 className="workspace-card-title">Profile & Security</h2>
+            <ul className="workspace-list workspace-list--compact" style={{ marginTop: "0.75rem" }}>
+              <li>
+                <span>Full Name</span>
+                <strong>{String(profile?.full_name ?? "Not set")}</strong>
+              </li>
+              <li>
+                <span>Email</span>
+                <strong>{user.email ?? "Unknown"}</strong>
+              </li>
+              <li>
+                <span>Phone</span>
+                <strong>{String(profile?.phone ?? "Not set")}</strong>
+              </li>
+              <li>
+                <span>KYC Status</span>
+                <strong style={{ color: String(profile?.kyc_status) === "verified" ? "#22cf9d" : "#ff6b6b" }}>{String(profile?.kyc_status ?? "pending").toUpperCase()}</strong>
+              </li>
+            </ul>
+            <div className="workspace-inline-actions" style={{ marginTop: "1rem" }}>
+              <button className="workspace-nav-link">Enable 2FA</button>
+              <button className="workspace-nav-link">Change Password</button>
+            </div>
+          </article>
         </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Help & Support</CardTitle>
-            <CardDescription>Email: support@trustlend.com | Live chat: 9AM-6PM UTC</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline">FAQ</Button>
-              <Button variant="outline">Create Support Ticket</Button>
-              <Button variant="outline">Video Tutorials</Button>
-            </div>
-          </CardContent>
-        </Card>
+        <article className="workspace-card workspace-card--full">
+          <h2 className="workspace-card-title">Help & Support</h2>
+          <p className="workspace-card-copy" style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Email: support@trustlend.com | Live chat: 9AM-6PM UTC</p>
+          <div className="workspace-inline-actions" style={{ marginTop: "1rem" }}>
+            <button className="workspace-nav-link">FAQ</button>
+            <button className="workspace-nav-link">Create Support Ticket</button>
+            <button className="workspace-nav-link">Video Tutorials</button>
+          </div>
+        </article>
       </div>
     </WorkspaceFrame>
   );

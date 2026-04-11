@@ -89,6 +89,7 @@ export function DepositForm({ pools, onSubmit }: DepositFormProps) {
         type="submit"
         disabled={loading || !amount || !poolId}
         className="workspace-button workspace-button--primary"
+        style={{ width: "100%" }}
       >
         {loading ? "Processing..." : "Deposit Now"}
       </button>
@@ -164,38 +165,41 @@ export function WithdrawForm({ positions, onSubmit }: WithdrawFormProps) {
 
       <div>
         <label className="workspace-label">Withdrawal Amount (XLM)</label>
-        <input
-          type="number"
-          step="0.01"
-          min="1"
-          max={availableWithdraw}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Enter amount"
-          className="workspace-input"
-          disabled={loading}
-        />
+        <div style={{ display: "flex", gap: "0.7rem", alignItems: "center" }}>
+          <input
+            type="number"
+            step="0.01"
+            min="1"
+            max={availableWithdraw}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Enter amount"
+            className="workspace-input"
+            disabled={loading}
+            style={{ flex: 1 }}
+          />
+          <button
+            type="button"
+            onClick={handleMax}
+            disabled={loading || availableWithdraw <= 0}
+            className="workspace-button workspace-button--secondary"
+            style={{ minWidth: "80px" }}
+          >
+            Max
+          </button>
+        </div>
       </div>
 
       {error && <p className="workspace-error">{error}</p>}
 
-      <div className="workspace-form-actions">
-        <button
-          type="button"
-          onClick={handleMax}
-          disabled={loading || availableWithdraw <= 0}
-          className="workspace-button workspace-button--secondary"
-        >
-          Max
-        </button>
-        <button
-          type="submit"
-          disabled={loading || !amount || !positionId}
-          className="workspace-button workspace-button--primary"
-        >
-          {loading ? "Processing..." : "Withdraw"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading || !amount || !positionId}
+        className="workspace-button workspace-button--primary"
+        style={{ width: "100%" }}
+      >
+        {loading ? "Processing..." : "Withdraw"}
+      </button>
     </form>
   );
 }

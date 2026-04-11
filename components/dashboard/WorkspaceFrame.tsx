@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NotificationWidget } from "./NotificationWidget";
 
 interface WorkspaceLink {
   href: string;
@@ -22,6 +23,7 @@ interface WorkspaceFrameProps {
   heading: string;
   description: string;
   email: string | null;
+  userName?: string | null;
   metrics: WorkspaceMetric[];
   links: WorkspaceLink[];
   currentPath?: string;
@@ -35,7 +37,7 @@ export function WorkspaceFrame({
   roleLabel,
   heading,
   description,
-  email,
+  userName,
   metrics,
   links,
   currentPath,
@@ -46,6 +48,7 @@ export function WorkspaceFrame({
 }: WorkspaceFrameProps) {
   const resolvedPath = currentPath ?? links[0]?.href ?? "/dashboard";
   const resolvedProfilePath = profilePath ?? links.find((item) => /profile|settings/i.test(item.label))?.href ?? links[0]?.href ?? "/dashboard";
+  const displayName = userName && userName.trim() !== "" ? userName.trim() : "User";
   
   const resolvedProfileSummary: ProfileSummary = profileSummary ?? {
     completion: 40,
@@ -133,9 +136,8 @@ export function WorkspaceFrame({
               <div className="workspace-header-widget" aria-label="Dashboard controls">
                 {headerWidget ?? (
                   <div className="workspace-top-actions">
-                      <span className="workspace-chip">{email ?? "Unknown"}</span>
-                      <Link href={resolvedProfilePath} className="workspace-chip">Settings</Link>
-                      <span className="workspace-chip">Notifications</span>
+                       <span className="workspace-chip">{displayName}</span>
+                      <NotificationWidget />
                   </div>
                 )}
               </div>

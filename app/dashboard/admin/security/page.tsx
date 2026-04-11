@@ -35,6 +35,7 @@ export default async function AdminSecurityPage() {
       heading="Security Center"
       description="Investigate fraud signals, manual-review decisions, and suspicious account behavior."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? "Admin")}
       metrics={presentAdminMetrics(metrics)}
       links={[
         { href: "/dashboard/admin", label: "Overview" },

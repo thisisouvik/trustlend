@@ -25,6 +25,7 @@ export default async function AdminUsersPage() {
       heading="User Governance"
       description="Review user role distribution, KYC state, and high-risk identities."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? "Admin")}
       metrics={presentAdminMetrics(metrics)}
       links={[
         { href: "/dashboard/admin", label: "Overview" },

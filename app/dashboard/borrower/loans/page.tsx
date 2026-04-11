@@ -11,14 +11,24 @@ export default async function BorrowerLoansPage() {
   const metrics = await getBorrowerDashboardMetrics(user.id);
 
   const supabase = await getServerSupabaseClient();
-  const { data: loans } = supabase
-    ? await supabase
-        .from("loans")
-        .select("id, status, principal_amount, apr_bps, duration_days, requested_at, due_at")
-        .eq("borrower_id", user.id)
-        .order("requested_at", { ascending: false })
-        .limit(8)
-    : { data: [] as Array<Record<string, unknown>> };
+  const [loansRes, profileRes] = supabase
+    ? await Promise.all([
+        supabase
+          .from("loans")
+          .select("id, status, principal_amount, apr_bps, duration_days, requested_at, due_at")
+          .eq("borrower_id", user.id)
+          .order("requested_at", { ascending: false })
+          .limit(8),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: [] }, { data: null }];
+
+  const loans = loansRes.data ?? [];
+  const profile = profileRes.data;
 
   return (
     <WorkspaceFrame
@@ -26,11 +36,14 @@ export default async function BorrowerLoansPage() {
       heading="My Loans"
       description="View requested, active, and completed loans with repayment context."
       email={user.email ?? null}
+      userName={String(user.user_metadata?.full_name ?? profile?.full_name ?? "")}
       metrics={presentBorrowerMetrics(metrics)}
+      currentPath="/dashboard/borrower/loans"
       links={[
-        { href: "/dashboard/borrower", label: "Overview" },
+        { href: "/dashboard/borrower", label: "Home" },
+        { href: "/dashboard/borrower/loans", label: "My loans" },
         { href: "/dashboard/borrower/tasks", label: "Tasks" },
-        { href: "/dashboard/borrower/profile", label: "Profile" },
+        { href: "/dashboard/borrower/profile", label: "Profile & Settings" },
       ]}
     >
       <div className="workspace-table-wrap">

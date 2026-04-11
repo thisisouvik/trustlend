@@ -38,16 +38,24 @@ export function HeroSection({ content }: HeroSectionProps) {
         </article>
 
         <article className="hero-visual" aria-hidden="true">
-          <div className="hero-visual-ring" />
+          <div className="hero-visual-glow" />
           <div className="hero-art">
             <Image
-              src="/assets/hero-crypto.png"
+              src="/assets/hero-trust.png"
               alt=""
               fill
               priority
               sizes="(max-width: 960px) 100vw, 50vw"
               className="object-contain"
             />
+          </div>
+          <div className="hero-stat hero-stat-tl">
+            <span className="hero-stat-val">Trust</span>
+            <span className="hero-stat-label">Live risk signal</span>
+          </div>
+          <div className="hero-stat hero-stat-br">
+            <span className="hero-stat-val">3.4k</span>
+            <span className="hero-stat-label">Active users</span>
           </div>
         </article>
       </div>
