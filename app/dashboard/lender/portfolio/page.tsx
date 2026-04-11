@@ -27,10 +27,13 @@ export default async function LenderPortfolioPage() {
       description="Track active pool positions, principal exposure, and cumulative interest earned."
       email={user.email ?? null}
       metrics={presentLenderMetrics(metrics)}
+      currentPath="/dashboard/lender/portfolio"
       links={[
-        { href: "/dashboard/lender", label: "Overview" },
+        { href: "/dashboard/lender", label: "Home" },
         { href: "/dashboard/lender/pools", label: "Pools" },
+        { href: "/dashboard/lender/portfolio", label: "Portfolio" },
         { href: "/dashboard/lender/risk", label: "Risk" },
+        { href: "/dashboard/lender/profile", label: "Settings" },
       ]}
     >
       <div className="workspace-grid">

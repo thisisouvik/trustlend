@@ -26,10 +26,13 @@ export default async function LenderPoolsPage() {
       description="Review available liquidity pools, APR, and allocation capacity before deploying capital."
       email={user.email ?? null}
       metrics={presentLenderMetrics(metrics)}
+      currentPath="/dashboard/lender/pools"
       links={[
-        { href: "/dashboard/lender", label: "Overview" },
+        { href: "/dashboard/lender", label: "Home" },
+        { href: "/dashboard/lender/pools", label: "Pools" },
         { href: "/dashboard/lender/portfolio", label: "Portfolio" },
         { href: "/dashboard/lender/risk", label: "Risk" },
+        { href: "/dashboard/lender/profile", label: "Settings" },
       ]}
     >
       <div className="workspace-table-wrap">

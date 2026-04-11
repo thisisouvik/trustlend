@@ -52,38 +52,38 @@ export default async function LenderProfilePage() {
         <div className="workspace-stack">
           <article className="workspace-card">
             <h2 className="workspace-card-title">Compliance State</h2>
-            <div className="workspace-mini-metrics" style={{ marginTop: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-              <div>
-                <span className="wallet-balance-label">KYC Status</span>
-                <p style={{ marginTop: '0.2rem', fontWeight: 600 }}>{String(profile?.kyc_status ?? "pending").toUpperCase()}</p>
+            <div className="profile-summary-grid">
+              <div className="profile-summary-item">
+                <span className="profile-summary-label">KYC Status</span>
+                <p className="profile-summary-value">{String(profile?.kyc_status ?? "pending").toUpperCase()}</p>
               </div>
-              <div>
-                <span className="wallet-balance-label">Risk Profile</span>
-                <p style={{ marginTop: '0.2rem', fontWeight: 600 }}>{String(profile?.risk_status ?? "low").toUpperCase()}</p>
+              <div className="profile-summary-item">
+                <span className="profile-summary-label">Risk Profile</span>
+                <p className="profile-summary-value">{String(profile?.risk_status ?? "low").toUpperCase()}</p>
               </div>
             </div>
-            <p className="workspace-card-copy" style={{ marginTop: '1rem' }}>
+            <p className="workspace-card-copy profile-note">
               Your profile data unlocks higher deposit limits and verified status in decentralized lending operations.
             </p>
           </article>
 
           <article className="workspace-card">
             <h2 className="workspace-card-title">Account Security</h2>
-            <ul className="workspace-list workspace-list--compact">
-              <li>
-                <span>Email Address</span>
-                <strong>{user.email ?? "Unknown"}</strong>
-              </li>
-              <li>
-                <span>Role</span>
-                <strong>{String(profile?.role ?? "lender")}</strong>
-              </li>
-              <li>
-                <span>Two-Factor Auth</span>
-                <span className="wallet-status-indicator wallet-status-active"></span>
-              </li>
-            </ul>
-            <div className="workspace-inline-actions" style={{ marginTop: '1rem' }}>
+            <div className="profile-security-list">
+              <div className="profile-security-row">
+                <span className="profile-security-label">Email Address</span>
+                <strong className="profile-security-value">{user.email ?? "Unknown"}</strong>
+              </div>
+              <div className="profile-security-row">
+                <span className="profile-security-label">Role</span>
+                <strong className="profile-security-value">{String(profile?.role ?? "lender")}</strong>
+              </div>
+              <div className="profile-security-row">
+                <span className="profile-security-label">Two-Factor Auth</span>
+                <span className="profile-security-dot wallet-status-indicator wallet-status-active" />
+              </div>
+            </div>
+            <div className="workspace-inline-actions profile-security-actions">
               <button type="button" className="workspace-nav-link">Change Password</button>
             </div>
           </article>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { formatCurrency } from "@/lib/utils/formatting";
 
 interface WalletCardProps {
@@ -9,6 +9,7 @@ interface WalletCardProps {
   inLoansOrPools: number;
   pending: number;
   inLoansLabel?: string;
+  compact?: boolean;
 }
 
 export function WalletCard({
@@ -17,108 +18,81 @@ export function WalletCard({
   inLoansOrPools,
   pending,
   inLoansLabel = "In Loans",
+  compact = false,
 }: WalletCardProps) {
-  const [showHistory, setShowHistory] = useState(false);
+  const isConnected = Boolean(address);
+  const shortAddress = useMemo(() => {
+    if (!address) return "No wallet connected";
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
+  }, [address]);
+
+  if (compact) {
+    return (
+      <article className="wallet-card-shell wallet-card-shell--compact">
+        <div className="wallet-card-compact-head">
+          <div className="wallet-card-topcopy">
+            <span className={`wallet-status-indicator ${isConnected ? "wallet-status-active" : "wallet-status-inactive"}`} aria-hidden="true" />
+            <div>
+              <p className="wallet-card-title">Wallet {isConnected ? "Connected" : "Not Connected"}</p>
+              <p className="wallet-card-subtitle">Address {shortAddress}</p>
+            </div>
+          </div>
+          <button type="button" className="wallet-card-action">
+            {isConnected ? "Disconnect" : "Connect Wallet"}
+          </button>
+        </div>
+
+        <div className="wallet-card-compact-metrics">
+          <div className="wallet-card-compact-metric">
+            <span>Available</span>
+            <strong>{formatCurrency(available)}</strong>
+          </div>
+          <div className="wallet-card-compact-metric">
+            <span>{inLoansLabel}</span>
+            <strong>{formatCurrency(inLoansOrPools)}</strong>
+          </div>
+          <div className="wallet-card-compact-metric">
+            <span>Pending</span>
+            <strong>{formatCurrency(pending)}</strong>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
-    <article className="workspace-card crypto-wallet-card">
-      <div className="wallet-card-header">
-        <h2 className="workspace-card-title wallet-title">Your Stellar Wallet</h2>
-        <div className="wallet-chip-status">
-          {address ? (
-            <span className="wallet-status-indicator wallet-status-active"></span>
-          ) : (
-            <span className="wallet-status-indicator wallet-status-inactive"></span>
-          )}
-          {address ? "Connected" : "Not connected"}
+    <article className="wallet-card-shell">
+      <div className="wallet-card-top">
+        <div className="wallet-card-topcopy">
+          <span className={`wallet-status-indicator ${isConnected ? "wallet-status-active" : "wallet-status-inactive"}`} aria-hidden="true" />
+          <div>
+            <p className="wallet-card-title">Wallet {isConnected ? "Connected" : "Not Connected"}</p>
+            <p className="wallet-card-subtitle">{shortAddress}</p>
+          </div>
         </div>
+        <button type="button" className="wallet-card-action">
+          {isConnected ? "Disconnect" : "Connect Wallet"}
+        </button>
       </div>
 
-      <p className="wallet-address font-mono">
-        {address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : "No active wallet"}
-      </p>
-
-      <div className="wallet-balance-wrap">
-        <p className="wallet-balance-label">Available Balance</p>
-        <p className="wallet-balance-amount font-display">{formatCurrency(available)}</p>
+      <div className="wallet-card-addressline">
+        <span className="wallet-card-addresslabel">Wallet address</span>
+        <span className="wallet-card-addressvalue">{shortAddress}</span>
       </div>
 
-      <div className="wallet-stats">
-        <div className="wallet-stat">
+      <div className="wallet-card-grid">
+        <div className="wallet-card-metric">
+          <span>Available Balance</span>
+          <strong>{formatCurrency(available)}</strong>
+        </div>
+        <div className="wallet-card-metric">
           <span>{inLoansLabel}</span>
           <strong>{formatCurrency(inLoansOrPools)}</strong>
         </div>
-        <div className="wallet-stat">
+        <div className="wallet-card-metric">
           <span>Pending</span>
           <strong>{formatCurrency(pending)}</strong>
         </div>
-      </div>
-
-      <div className="workspace-inline-actions wallet-actions">
-        {address ? (
-          <button type="button" className="workspace-btn-primary">Disconnect</button>
-        ) : (
-          <button type="button" className="workspace-btn-primary">Connect Wallet</button>
-        )}
-      </div>
-
-      <div className="wallet-history-section">
-        <button
-          type="button"
-          className="wallet-history-toggle"
-          onClick={() => setShowHistory(!showHistory)}
-        >
-          {showHistory ? "Hide Transaction History" : "View Transaction History"}
-          <svg
-            className={`wallet-history-icon ${showHistory ? "rotate" : ""}`}
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
-
-        {showHistory && (
-          <div className="wallet-history-list">
-             {/* Mock history just for the UI presentation */}
-             <div className="wallet-history-item">
-               <div className="wallet-history-info">
-                 <span className="wallet-history-type deposit">Deposit</span>
-                 <span className="wallet-history-date">Today at 10:42 AM</span>
-               </div>
-               <div className="wallet-history-amount positive">
-                 +{formatCurrency(500)}
-                 <a href="#" className="wallet-verify-link" title="Verify on Stellar block explorer">🔗 Verify</a>
-               </div>
-             </div>
-             <div className="wallet-history-item">
-               <div className="wallet-history-info">
-                 <span className="wallet-history-type withdrawal">Withdrawal</span>
-                 <span className="wallet-history-date">Yesterday at 14:20 PM</span>
-               </div>
-               <div className="wallet-history-amount negative">
-                 -{formatCurrency(150)}
-                 <a href="#" className="wallet-verify-link" title="Verify on Stellar block explorer">🔗 Verify</a>
-               </div>
-             </div>
-             <div className="wallet-history-item">
-               <div className="wallet-history-info">
-                 <span className="wallet-history-type deposit">Loan Funded</span>
-                 <span className="wallet-history-date">Apr 8, 2026</span>
-               </div>
-               <div className="wallet-history-amount positive">
-                 +{formatCurrency(1200)}
-                 <a href="#" className="wallet-verify-link" title="Verify on Stellar block explorer">🔗 Verify</a>
-               </div>
-             </div>
-          </div>
-        )}
       </div>
     </article>
   );

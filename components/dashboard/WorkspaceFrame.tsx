@@ -27,6 +27,7 @@ interface WorkspaceFrameProps {
   currentPath?: string;
   profilePath?: string;
   profileSummary?: ProfileSummary;
+  headerWidget?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -40,14 +41,12 @@ export function WorkspaceFrame({
   currentPath,
   profilePath,
   profileSummary,
+  headerWidget,
   children,
 }: WorkspaceFrameProps) {
   const resolvedPath = currentPath ?? links[0]?.href ?? "/dashboard";
   const resolvedProfilePath = profilePath ?? links.find((item) => /profile|settings/i.test(item.label))?.href ?? links[0]?.href ?? "/dashboard";
   
-  // Decide if we should show back button
-  const isMainDashboard = resolvedPath === links[0]?.href;
-
   const resolvedProfileSummary: ProfileSummary = profileSummary ?? {
     completion: 40,
     kycStatus: "pending",
@@ -60,18 +59,24 @@ export function WorkspaceFrame({
     ],
   };
 
+  const normalizedLinks = (() => {
+    const seen = new Set<string>();
+    return links.filter((item) => {
+      if (seen.has(item.href)) {
+        return false;
+      }
+
+      seen.add(item.href);
+      return true;
+    });
+  })();
+
   return (
     <main className="role-dashboard-shell">
       <section className="role-dashboard-card role-dashboard-card--wide">
         <div className="workspace-layout">
           <aside className="workspace-sidebar" aria-label="Dashboard sidebar">
-            {!isMainDashboard && (
-              <Link href={links[0]?.href ?? "/dashboard"} className="sidebar-back-btn">
-                ← Back to Dashboard
-              </Link>
-            )}
-
-            <div>
+            <div className="workspace-brand-wrap">
               <Link href="/" className="workspace-brand font-display">
                 TrustLend
               </Link>
@@ -79,7 +84,7 @@ export function WorkspaceFrame({
             </div>
 
             <nav className="workspace-sidebar-nav" aria-label={`${roleLabel} navigation`}>
-              {links.map((item) => (
+              {normalizedLinks.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -91,10 +96,14 @@ export function WorkspaceFrame({
             </nav>
 
             <section className="premium-alert" aria-live="polite">
+              <p className="premium-alert-badge">Action Required</p>
               <div className="premium-alert-header">
-                <span className="premium-alert-icon">!</span>
+                <span className="premium-alert-icon" aria-hidden="true">
+                  <span>!</span>
+                </span>
                 <p className="premium-alert-title">Profile & KYC</p>
               </div>
+              <p className="workspace-profile-warning">High warning: complete profile to receive or grant loans.</p>
               <p className="workspace-profile-copy">{resolvedProfileSummary.warningText}</p>
               
               <div className="workspace-progress" style={{ margin: "0.8rem 0" }} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={resolvedProfileSummary.completion}>
@@ -121,10 +130,14 @@ export function WorkspaceFrame({
                 <h1 className="font-display role-title">{heading}</h1>
                 <p className="role-description">{description}</p>
               </div>
-              <div className="workspace-top-actions" aria-label="Dashboard controls">
-                <span className="workspace-chip">{email ?? "Unknown"}</span>
-                <Link href={resolvedProfilePath} className="workspace-chip">Settings</Link>
-                <span className="workspace-chip">Notifications</span>
+              <div className="workspace-header-widget" aria-label="Dashboard controls">
+                {headerWidget ?? (
+                  <div className="workspace-top-actions">
+                      <span className="workspace-chip">{email ?? "Unknown"}</span>
+                      <Link href={resolvedProfilePath} className="workspace-chip">Settings</Link>
+                      <span className="workspace-chip">Notifications</span>
+                  </div>
+                )}
               </div>
             </header>
 

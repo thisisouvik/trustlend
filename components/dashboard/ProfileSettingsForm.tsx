@@ -50,7 +50,6 @@ export function ProfileSettingsForm({
         full_name: formData.full_name,
         phone: formData.phone,
         country_code: formData.country_code,
-        // Mock KYC status update based on filling details
         kyc_status: formData.full_name && formData.phone ? "verified" : "pending",
       };
 
@@ -59,9 +58,6 @@ export function ProfileSettingsForm({
         .upsert(updates);
 
       if (updateError) throw updateError;
-
-      // Mock submitting to blockchain or verification layer
-      await new Promise(resolve => setTimeout(resolve, 800));
 
       setSuccess(true);
       router.refresh();

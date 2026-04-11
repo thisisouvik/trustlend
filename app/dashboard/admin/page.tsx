@@ -17,6 +17,7 @@ export default async function AdminDashboardPage() {
       email={user.email ?? null}
       metrics={presentAdminMetrics(metrics)}
       links={[
+        { href: "/dashboard/admin", label: "Overview" },
         { href: "/dashboard/admin/users", label: "Users" },
         { href: "/dashboard/admin/loans", label: "Loans" },
         { href: "/dashboard/admin/security", label: "Security" },

@@ -105,6 +105,16 @@ export default async function LenderDashboardPage() {
       description="Data-driven lending operations with transparent pool performance, risk signals, and earnings visibility."
       email={user.email ?? null}
       metrics={presentLenderMetrics(metrics)}
+      headerWidget={(
+        <WalletCard
+          address={String(user.user_metadata?.wallet_address ?? "") || null}
+          available={0}
+          inLoansOrPools={metrics.deployedCapital}
+          pending={0}
+          inLoansLabel="In Pools"
+          compact
+        />
+      )}
       currentPath="/dashboard/lender"
       profilePath="/dashboard/lender/profile"
       profileSummary={{
@@ -150,15 +160,7 @@ export default async function LenderDashboardPage() {
           </article>
         </section>
 
-        <section className="workspace-grid workspace-grid--three">
-          <WalletCard
-            address={String(user.user_metadata?.wallet_address ?? "") || null}
-            available={0}
-            inLoansOrPools={metrics.deployedCapital}
-            pending={0}
-            inLoansLabel="In Pools"
-          />
-
+        <section className="workspace-grid workspace-grid--two">
           <article className="workspace-card">
             <h2 className="workspace-card-title">Your Total Earnings</h2>
             <p className="workspace-card-copy">Total Deposited: {formatCurrency(metrics.deployedCapital)}</p>

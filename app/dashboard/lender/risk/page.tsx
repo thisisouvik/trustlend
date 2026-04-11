@@ -26,10 +26,13 @@ export default async function LenderRiskPage() {
       description="Monitor loan maturity and defaults to keep portfolio risk within target bounds."
       email={user.email ?? null}
       metrics={presentLenderMetrics(metrics)}
+      currentPath="/dashboard/lender/risk"
       links={[
-        { href: "/dashboard/lender", label: "Overview" },
+        { href: "/dashboard/lender", label: "Home" },
         { href: "/dashboard/lender/pools", label: "Pools" },
         { href: "/dashboard/lender/portfolio", label: "Portfolio" },
+        { href: "/dashboard/lender/risk", label: "Risk" },
+        { href: "/dashboard/lender/profile", label: "Settings" },
       ]}
     >
       <div className="workspace-table-wrap">
