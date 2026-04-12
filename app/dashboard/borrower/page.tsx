@@ -10,6 +10,7 @@ import {
   presentBorrowerMetrics,
 } from "@/lib/dashboard/metrics";
 import { getServerSupabaseClient } from "@/lib/supabase/server";
+import { SorobanProfileCard } from "@/components/dashboard/SorobanProfileCard";
 import { formatCurrency } from "@/lib/utils/formatting";
 import { STELLAR_VERIFY_PORTAL } from "@/lib/stellar/explorer";
 
@@ -216,6 +217,8 @@ export default async function BorrowerDashboardPage() {
             </div>
           </article>
         </section>
+        
+        <SorobanProfileCard walletAddress={walletAddress} />
 
         <article className="workspace-card workspace-card--full">
           <h2 className="workspace-card-title">Your Active Loans</h2>

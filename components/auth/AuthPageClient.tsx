@@ -51,7 +51,7 @@ export function AuthPageClient() {
   const router = useRouter();
 
   const paramRole = params.get("role");
-  const initialRole: AuthSelectableRole | null = isUserRole(paramRole) ? paramRole : null;
+  const initialRole: AuthSelectableRole | null = (paramRole === "borrower" || paramRole === "lender") ? paramRole : null;
 
   const [role, setRole] = useState<AuthSelectableRole | null>(initialRole);
   const [authStep, setAuthStep] = useState<AuthStep>("sign-in");
