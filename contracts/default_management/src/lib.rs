@@ -61,7 +61,6 @@ impl DefaultManagementContract {
     // ── Admin ─────────────────────────────────────────────────────────────────
 
     pub fn initialize(env: Env, admin: Address, initial_insurance_balance: i128) {
-        admin.require_auth();
         if env.storage().instance().has(&DataKey::Admin) {
             panic!("Contract already initialised");
         }
